@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.empty_view);
         lvXmlFile = findViewById(R.id.lvXmlFile);
 
-        // ... xin quyền (external)
+        // ... xin quyền (read external)
         mListFiles = new ArrayList<>();
         new LoadTask().execute();
 
@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             else {
-//                Log.v(TAG,"Permission is revoked1");
+                Log.d("Files","Permission is revoked1");
                 ActivityCompat.requestPermissions(this, new String[]{permission}, REQUEST_CODE);
                 return false;
             }
@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void importHandler() {
-        if (checkPermission(Manifest.permission.MANAGE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_CODE)) {
+        if (checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_CODE)) {
             // lấy danh sách đã chọn để vào copyTask
             ArrayList<String> selectedFiles = new ArrayList<>();
             for(XmlFile file : mListFiles) {
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
             Log.d("Files", "Granted");
 
-            // lưu vào bộ nhớ trong
+            // lưu vào bộ nhớ ngoài
             // if files.size > 0
             String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/official_data";
             Log.d("Files", dirPath);
@@ -114,15 +114,18 @@ public class MainActivity extends AppCompatActivity {
                 dir.mkdirs();
             }
             AssetManager assetManager = getAssets();
-            InputStream is = null;
+            InputStream is = null;      // dành cho copy
+            InputStream is2 = null;     // dành cho parsing
             OutputStream os = null;
 
             for (String file:selectedFiles) {
                 try {
                     is = assetManager.open(file);
+                    is2 = assetManager.open(file);
                     File outFile = new File(dirPath, file);
                     os = new FileOutputStream(outFile);
                     copyFile(is, os);
+                    String instanceID = parseXML(is2);
                     Log.d("Files", "Successful " + file);
                     // thông báo ra
                 }
@@ -158,22 +161,25 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void parseXML() {
+    private String parseXML(InputStream is) {
+        String instanceID = "";
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();
             XmlPullParser parser = parserFactory.newPullParser();
-            InputStream is = getAssets().open("All_in_One_GEN007_2015-07-06_11-31-03-74.xml");
             parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
             parser.setInput(is, null);
-            processParsing(parser);
+
+            return processParsing(parser);
         } catch (XmlPullParserException | IOException e) {
             e.printStackTrace();
         }
+        return instanceID;
     }
 
-    private void processParsing(XmlPullParser parser) {
-
+    private String processParsing(XmlPullParser parser) {
+        //
+        return null;
     }
 
     private void copyFile(InputStream is, OutputStream os) throws IOException {
@@ -202,6 +208,7 @@ public class MainActivity extends AppCompatActivity {
             files.add(new XmlFile("All_in_One_GEN007_2015-07-06_12-38-52-181.xml"));
             files.add(new XmlFile("All_in_One_GEN007_2015-07-06_12-39-25-661.xml"));
             files.add(new XmlFile("All_in_One_GEN007_2015-07-06_12-40-01-991.xml"));
+            files.add(new XmlFile("1436161232694.jpg"));
 
             return files;
         }
