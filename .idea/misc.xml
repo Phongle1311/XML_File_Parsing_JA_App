@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable-anydpi/ic_action_name.xml" value="0.2555" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable-anydpi/open.xml" value="0.2555" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable/my_border.xml" value="0.241" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable/my_border_selected.xml" value="0.1345" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/activity_main.xml" value="0.176" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/item_xml_file.xml" value="0.1" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/my_border.xml" value="0.21739130434782608" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectPlainTextFileTypeManager">
+    <file url="file://$PROJECT_DIR$/app/src/main/assets/All_in_One_GEN007_2015-07-06_11-31-03-74.xml" />
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
