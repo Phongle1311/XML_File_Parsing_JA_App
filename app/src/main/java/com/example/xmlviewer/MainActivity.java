@@ -7,15 +7,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -30,12 +29,11 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.empty_view);
         lvXmlFile = findViewById(R.id.lvXmlFile);
 
-        // ... xin quyền (read external)
+        // ... xin quyền (read external) khi chuyển thành đọc từ external
         mListFiles = new ArrayList<>();
         new LoadTask().execute();
 
@@ -61,40 +59,8 @@ public class MainActivity extends AppCompatActivity {
         btnImport.setOnClickListener(view -> importHandler());
     }
 
-    private Boolean checkPermission(String permission, int REQUEST_CODE) {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(permission)
-                    == PackageManager.PERMISSION_GRANTED) {
-//                Log.v(TAG,"Permission is granted1");
-                return true;
-            }
-            else {
-                Log.d("Files","Permission is revoked1");
-                ActivityCompat.requestPermissions(this, new String[]{permission}, REQUEST_CODE);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case WRITE_EXTERNAL_STORAGE_CODE:
-//                Log.d(TAG, "External storage2");
-                if(grantResults[0]== PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission: " + permissions[0] + "was "
-                            + grantResults[0], Toast.LENGTH_SHORT).show();
-                    importHandler();
-                    break;
-                }
-        }
-    }
-
     private void importHandler() {
-        if (checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_CODE)) {
+        /*if (checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_CODE)) {
             // lấy danh sách đã chọn để vào copyTask
             ArrayList<String> selectedFiles = new ArrayList<>();
             for(XmlFile file : mListFiles) {
@@ -158,6 +124,50 @@ public class MainActivity extends AppCompatActivity {
         }
         else {
             Log.d("Files", "not granted");
+        }*/
+
+        ArrayList<String> selectedFiles = new ArrayList<>();
+        for(XmlFile file : mListFiles) {
+            if (file.getSelected()) {
+                selectedFiles.add(file.getName());
+                file.setSelected(false);
+            }
+        }
+
+        new ImportTask().execute(selectedFiles);
+
+        mAdapter.notifyDataSetChanged();
+    }
+
+    private Boolean checkPermission(String permission, int REQUEST_CODE) {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(permission)
+                    == PackageManager.PERMISSION_GRANTED) {
+//                Log.v(TAG,"Permission is granted1");
+                return true;
+            }
+            else {
+                Log.d("Files","Permission is revoked1");
+                ActivityCompat.requestPermissions(this, new String[]{permission}, REQUEST_CODE);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case WRITE_EXTERNAL_STORAGE_CODE:
+//                Log.d(TAG, "External storage2");
+                if(grantResults[0]== PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permission: " + permissions[0] + "was "
+                            + grantResults[0], Toast.LENGTH_SHORT).show();
+                    importHandler();
+                    break;
+                }
         }
     }
 
@@ -171,15 +181,39 @@ public class MainActivity extends AppCompatActivity {
             parser.setInput(is, null);
 
             return processParsing(parser);
-        } catch (XmlPullParserException | IOException e) {
+        } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
         return instanceID;
     }
 
     private String processParsing(XmlPullParser parser) {
-        //
-        return null;
+        int eventType=-1;
+        String nodeName;
+        String data="";
+
+        Boolean stop = false;
+        try {
+            while (eventType != XmlPullParser.END_DOCUMENT && !stop) {
+                eventType = parser.next();
+                switch (eventType) {
+                    case XmlPullParser.START_DOCUMENT:
+                    case XmlPullParser.END_DOCUMENT:
+                        break;
+                    case XmlPullParser.START_TAG:
+                        nodeName = parser.getName();
+                        if (nodeName.equalsIgnoreCase("instanceID")) {
+                            data = parser.nextText();
+                            stop = true;
+                        }
+                        break;
+                }
+            }
+        }
+        catch(XmlPullParserException | IOException e) {
+            e.printStackTrace();
+        }
+        return data;
     }
 
     private void copyFile(InputStream is, OutputStream os) throws IOException {
@@ -189,6 +223,36 @@ public class MainActivity extends AppCompatActivity {
             os.write(buffer, 0, read);
         }
     }
+
+    private String readFile(String fileName) {
+        File dir = this.getDir("official_data", Context.MODE_PRIVATE);
+        File file = new File(dir, fileName);
+        byte[] content = new byte[(int) file.length()];
+        FileInputStream is = null;
+
+        try {
+            is = new FileInputStream(file);
+            is.read(content);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return "File not found";
+        } catch (IOException e) {
+            e.printStackTrace();
+            return e.toString();
+        }
+        finally {
+            if (is != null) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return new String(content);
+    }
+
     // Lấy tên file tạo thành adapter
     class LoadTask extends AsyncTask<Void, Void, ArrayList<XmlFile>> {
         @Override
@@ -199,18 +263,22 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected ArrayList<XmlFile> doInBackground(Void... voids) {
-            ArrayList<XmlFile> files = new ArrayList<>();
+            ArrayList<XmlFile> answer = new ArrayList<>();
+            String[] files;
 
-            // sửa lại chỗ này thành directory.listfiles() => lấy ra danh sách tên các file .xml
+            AssetManager assetManager = getAssets();
+            try {
+                files = assetManager.list("");
 
-            files.add(new XmlFile("All_in_One_GEN007_2015-07-06_11-31-03-74.xml"));
-            files.add(new XmlFile("All_in_One_GEN007_2015-07-06_11-31-03-714.xml"));
-            files.add(new XmlFile("All_in_One_GEN007_2015-07-06_12-38-52-181.xml"));
-            files.add(new XmlFile("All_in_One_GEN007_2015-07-06_12-39-25-661.xml"));
-            files.add(new XmlFile("All_in_One_GEN007_2015-07-06_12-40-01-991.xml"));
-            files.add(new XmlFile("1436161232694.jpg"));
+                for(int i=0; i<files.length; i++){
+                    if (files[i].endsWith(".xml"))
+                        answer.add(new XmlFile(files[i]));
+                }
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
 
-            return files;
+            return answer;
         }
 
 
@@ -237,6 +305,46 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected Void doInBackground(ArrayList<String>... arrayLists) {
+            AssetManager assetManager = getAssets();
+            InputStream is = null;
+            InputStream is2 = null;
+            OutputStream os = null;
+            File dir = getApplicationContext().getDir("official_data", Context.MODE_PRIVATE);
+            for (String file:arrayLists[0]) {
+                try {
+                    is = assetManager.open(file);
+                    is2 = assetManager.open(file);
+                    File outFile = new File(dir, file);
+                    os = new FileOutputStream(outFile);
+                    copyFile(is, os);
+                    String instanceID = parseXML(is2);
+                    Log.d("Files", instanceID);
+                    Log.d("Files", "success " + file);
+                    Log.d("Files", outFile.getAbsolutePath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.d("Files", "unseccess " + file);
+                } finally {
+                    if (is != null) {
+                        try {
+                            is.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (os != null) {
+                        try {
+                            os.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+//                String content = readFile(file);
+//                Log.d("Files", content);
+                }
+
+            }
+
             return null;
         }
     }
