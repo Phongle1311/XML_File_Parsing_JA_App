@@ -8,6 +8,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.xmlviewer.model.XmlFile;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +28,7 @@ public class FileDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         Log.d(TAG, "Create table");
         String queryCreateTable = "CREATE TABLE " + TABLE_FILE +
-                " ( id INTEGER PRIMARY KEY, name VARCHAR (255) NOT NULL )";
+                " ( id NVARCHAR(225) PRIMARY KEY, name NVARCHAR (255) NOT NULL )";
         sqLiteDatabase.execSQL(queryCreateTable);
     }
 
@@ -36,35 +38,34 @@ public class FileDbHelper extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    public List<File> getAllFiles() {
-        List<File> files = new ArrayList<>();
+    public ArrayList<XmlFile> getAllFiles() {
+        ArrayList<XmlFile> files = new ArrayList<>();
 
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT id, name from product", null);
+        Cursor cursor = db.rawQuery("SELECT id, name FROM file_location", null);
 
         cursor.moveToFirst();
         while (!cursor.isAfterLast()) {
             String fileId = cursor.getString(0);
             String fileName = cursor.getString(1);
 
-            files.add(new File(fileId, fileName));
+            files.add(new XmlFile(fileName, fileId));
             cursor.moveToNext();
         }
 
         cursor.close();
-        
         return files;
     }
 
     public String getFileNameById(String id) {
         String file = null;
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT name from file_location where id = ?",
+        Cursor cursor = db.rawQuery("SELECT name FROM file_location WHERE id = ?",
                 new String[]{id + ""});
 
         if (cursor.getCount() > 0) {
             cursor.moveToFirst();
-            file = cursor.getString(1);
+            file = cursor.getString(0);
         }
         cursor.close();
         return file;

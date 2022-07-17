@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/file_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:paddingHorizontal="10dp">
+
+    <ImageButton
+        android:layout_height="match_parent"
+        android:layout_width="wrap_content"
+        android:src = "@drawable/ic_file_present"
+        android:background="@null"
+        android:contentDescription="@string/import_file_icon" />
+
+    <TextView
+        android:padding="10dp"
+        android:layout_marginHorizontal="10dp"
+        android:layout_marginVertical = "5dp"
+        android:textColor="#333"
+        android:textSize="14sp"
+        android:id="@+id/tv_instanceID"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

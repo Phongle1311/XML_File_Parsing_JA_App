@@ -6,8 +6,11 @@
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable-anydpi/ic_action_name.xml" value="0.2555" />
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable-anydpi/open.xml" value="0.2555" />
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable/my_border.xml" value="0.241" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable/my_border2.xml" value="0.1345" />
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/drawable/my_border_selected.xml" value="0.1345" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/activity_imported_list.xml" value="0.1" />
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/activity_main.xml" value="0.176" />
+        <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/item_imported_xml_file.xml" value="0.1" />
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/item_xml_file.xml" value="0.1" />
         <entry key="..\:/phong/Android/XML_Viewer_JA_App/app/src/main/res/layout/my_border.xml" value="0.21739130434782608" />
       </map>

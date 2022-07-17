@@ -3,4 +3,6 @@
     <string name="import_text">IMPORT</string>
     <string name="no_data_available">No data available!</string>
     <string name="open">open</string>
+    <string name="import_file_icon">import_file_icon</string>
+    <string name="choose_one_file">Choose one file ...</string>
 </resources>

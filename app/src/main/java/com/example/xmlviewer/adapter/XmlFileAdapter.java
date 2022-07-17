@@ -30,6 +30,14 @@ public class XmlFileAdapter extends BaseAdapter {
         return listFiles.get(i);
     }
 
+    public XmlFile getFile(int i) {
+        return listFiles.get(i);
+    }
+    public void setFile(int i, XmlFile file) {
+        listFiles.set(i, file);
+        notifyDataSetChanged();
+    }
+
     @Override
     public long getItemId(int i) {
         return 0;
@@ -37,14 +45,14 @@ public class XmlFileAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        View viewProduct;
+        View viewFile;
         if (view == null) {
-            viewProduct = View.inflate(viewGroup.getContext(), R.layout.item_xml_file, null);
+            viewFile = View.inflate(viewGroup.getContext(), R.layout.item_xml_file, null);
         }
-        else viewProduct = view;
+        else viewFile = view;
 
         XmlFile file = (XmlFile) getItem(i);
-        TextView tvFileName = viewProduct.findViewById(R.id.tv_file_name);
+        TextView tvFileName = viewFile.findViewById(R.id.tv_file_name);
 
         tvFileName.setText(file.getName());
         if (file.getSelected())
@@ -60,6 +68,6 @@ public class XmlFileAdapter extends BaseAdapter {
                 tvFileName.setBackgroundResource(R.drawable.my_border);
         });
 
-        return viewProduct;
+        return viewFile;
     }
 }

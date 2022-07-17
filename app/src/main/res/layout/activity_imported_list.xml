@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation = "vertical"
+    tools:context=".ImportedListActivity">
+
+    <ListView
+        android:id="@+id/lvXmlFile"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="@string/no_data_available"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/file_content"
+        android:layout_width="match_parent"
+        android:text = "@string/choose_one_file"
+        android:background="@drawable/my_border2"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        android:padding = "30dp"
+        android:maxLines="20"
+        android:scrollbars="vertical" />
+</LinearLayout>

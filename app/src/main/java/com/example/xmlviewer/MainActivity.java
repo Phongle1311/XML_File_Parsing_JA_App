@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
@@ -20,12 +21,15 @@ import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.xmlviewer.adapter.XmlFileAdapter;
 import com.example.xmlviewer.model.XmlFile;
+import com.example.xmlviewer.myAsyncTask.LoadTask;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -43,7 +47,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
-    static final int WRITE_EXTERNAL_STORAGE_CODE = 100;
     ListView lvXmlFile;
     TextView emptyView;
     ArrayList<XmlFile> mListFiles;
@@ -51,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
     FileDbHelper fileDbHelper;
     ProgressDialog pDialog;
     public static final int progress_bar_type = 0;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,12 +65,24 @@ public class MainActivity extends AppCompatActivity {
         emptyView = findViewById(R.id.empty_view);
         lvXmlFile = findViewById(R.id.lvXmlFile);
 
-        // ... xin quyền (read external) khi chuyển thành đọc từ external
         mListFiles = new ArrayList<>();
-        new LoadTask().execute();
+        new LoadTask(this, this::updateAdapter).execute();
 
         Button btnImport = findViewById(R.id.btn_import);
         btnImport.setOnClickListener(view -> importHandler());
+
+        ImageButton btnOpen = findViewById(R.id.btn_open);
+        btnOpen.setOnClickListener(view -> {
+            Intent intent = new Intent();
+            intent.setClass(MainActivity.this, ImportedListActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void updateAdapter(XmlFileAdapter adapter) {
+        mAdapter = adapter;
+        mAdapter.notifyDataSetChanged();
+        Log.d("Files", mAdapter.getCount() + "");
     }
 
     @Override
@@ -87,115 +101,20 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void importHandler() {
-        /*if (checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_CODE)) {
-            // lấy danh sách đã chọn để vào copyTask
-            ArrayList<String> selectedFiles = new ArrayList<>();
-            for(XmlFile file : mListFiles) {
-                if (file.getSelected()) {
-                    selectedFiles.add(file.getName());
-                    file.setSelected(false);
-                }
-            }
-            Log.d("Files", "Granted");
-
-            // lưu vào bộ nhớ ngoài
-            // if files.size > 0
-            String dirPath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/official_data";
-            Log.d("Files", dirPath);
-            File dir = new File(dirPath);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-            AssetManager assetManager = getAssets();
-            InputStream is = null;      // dành cho copy
-            InputStream is2 = null;     // dành cho parsing
-            OutputStream os = null;
-
-            for (String file:selectedFiles) {
-                try {
-                    is = assetManager.open(file);
-                    is2 = assetManager.open(file);
-                    File outFile = new File(dirPath, file);
-                    os = new FileOutputStream(outFile);
-                    copyFile(is, os);
-                    String instanceID = parseXML(is2);
-                    Log.d("Files", "Successful " + file);
-                    // thông báo ra
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                    Log.d("Files", "Unsuccessful " + file);
-
-                    // thông báo ra
-                }
-                finally {
-                    if (is != null) {
-                        try {
-                            is.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    if (os != null) {
-                        try {
-                            os.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-
-
-            mAdapter.notifyDataSetChanged();
-        }
-        else {
-            Log.d("Files", "not granted");
-        }*/
-
-        ArrayList<String> selectedFiles = new ArrayList<>();
-        for(XmlFile file : mListFiles) {
+         ArrayList<String> selectedFiles = new ArrayList<>();
+        for(int i = 0; i<mAdapter.getCount(); i++) {
+            XmlFile file = mAdapter.getFile(i);
             if (file.getSelected()) {
                 selectedFiles.add(file.getName());
                 file.setSelected(false);
             }
+            mAdapter.setFile(i, file);
         }
 
         new ImportTask().execute(selectedFiles);
-
-        mAdapter.notifyDataSetChanged();
-    }
-
-    private Boolean checkPermission(String permission, int REQUEST_CODE) {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(permission)
-                    == PackageManager.PERMISSION_GRANTED) {
-//                Log.v(TAG,"Permission is granted1");
-                return true;
-            }
-            else {
-                ActivityCompat.requestPermissions(this, new String[]{permission}, REQUEST_CODE);
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == WRITE_EXTERNAL_STORAGE_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permission: " + permissions[0] + "was "
-                        + grantResults[0], Toast.LENGTH_SHORT).show();
-                importHandler();
-            }
-        }
     }
 
     private String parseXML(InputStream is) {
-        String instanceID = null;
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();
@@ -207,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
-        return instanceID;
+        return null;
     }
 
     private String processParsing(XmlPullParser parser) {
@@ -247,82 +166,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private String readFile(String fileName) {
-        File dir = this.getDir("official_data", Context.MODE_PRIVATE);
-        File file = new File(dir, fileName);
-        byte[] content = new byte[(int) file.length()];
-        FileInputStream is = null;
-
-        try {
-            is = new FileInputStream(file);
-            is.read(content);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            return "File not found";
-        } catch (IOException e) {
-            e.printStackTrace();
-            return e.toString();
-        }
-        finally {
-            if (is != null) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return new String(content);
-    }
-
-    class LoadTask extends AsyncTask<Void, Void, ArrayList<XmlFile>> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mListFiles.clear();
-        }
-
-        @Override
-        protected ArrayList<XmlFile> doInBackground(Void... voids) {
-            ArrayList<XmlFile> answer = new ArrayList<>();
-            String[] files;
-
-            AssetManager assetManager = getAssets();
-            try {
-                files = assetManager.list("");
-
-                for(int i=0; i<files.length; i++){
-                    if (files[i].endsWith(".xml"))
-                        answer.add(new XmlFile(files[i]));
-                }
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-
-            return answer;
-        }
-
-
-        @Override
-        protected void onPostExecute(ArrayList<XmlFile> files) {
-            super.onPostExecute(files);
-            mListFiles.clear();
-            mListFiles.addAll(files);
-
-            if (mListFiles.isEmpty()) {
-                lvXmlFile.setVisibility(View.GONE);
-                emptyView.setVisibility(View.VISIBLE);
-            }
-            else {
-                lvXmlFile.setVisibility(View.VISIBLE);
-                mAdapter = new XmlFileAdapter(mListFiles);
-                lvXmlFile.setAdapter(mAdapter);
-                emptyView.setVisibility(View.GONE);
-            }
-        }
-    }
-
     class ImportTask extends AsyncTask<ArrayList<String>, Void, Pair<Integer, Integer>> {
 
         @Override
@@ -358,13 +201,15 @@ public class MainActivity extends AppCompatActivity {
 
 
                         Log.d("Files", file + " " + instanceID);
-                        if (fileDbHelper.getFileNameById(instanceID)!=null) {
+                        if (fileDbHelper.getFileNameById(instanceID)==null) {
                             // nếu chưa tồn tại trong db thì insert
-                            fileDbHelper.insertFile(file, instanceID);
+                            fileDbHelper.insertFile(instanceID, file);
+                            Log.d("Files", "chưa tồn tại");
                         }
                         else {
                             // nếu đã tồn tại trong db thì update
                             fileDbHelper.updateFileById(instanceID, file);
+                            Log.d("Files", "tồn tại");
                         }
 
                         copyFile(is, os);
@@ -388,7 +233,6 @@ public class MainActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
-//                String content = readFile(file);
                 }
                 sleep(200); // ...
                 i++;
