@@ -1,19 +1,23 @@
 package com.example.xmlviewer;
 
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+import static android.os.SystemClock.sleep;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
-import android.Manifest;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -35,18 +39,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
-    private static final int WRITE_EXTERNAL_STORAGE_CODE = 100;
+    static final int WRITE_EXTERNAL_STORAGE_CODE = 100;
     ListView lvXmlFile;
     TextView emptyView;
     ArrayList<XmlFile> mListFiles;
     XmlFileAdapter mAdapter;
+    FileDbHelper fileDbHelper;
+    ProgressDialog pDialog;
+    public static final int progress_bar_type = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        fileDbHelper = new FileDbHelper(this);
 
         emptyView = findViewById(R.id.empty_view);
         lvXmlFile = findViewById(R.id.lvXmlFile);
@@ -58,6 +70,21 @@ public class MainActivity extends AppCompatActivity {
         Button btnImport = findViewById(R.id.btn_import);
         btnImport.setOnClickListener(view -> importHandler());
     }
+
+    @Override
+    protected Dialog onCreateDialog(int id){
+        if (id == progress_bar_type) {
+            pDialog = new ProgressDialog(this);
+            pDialog.setMessage("Importing file. Please wait...");
+            pDialog.setIndeterminate(false);
+            pDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+            pDialog.setCancelable(true);
+            pDialog.show();
+            return pDialog;
+        }
+        return null;
+    }
+
 
     private void importHandler() {
         /*if (checkPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE_CODE)) {
@@ -147,7 +174,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             else {
-                Log.d("Files","Permission is revoked1");
                 ActivityCompat.requestPermissions(this, new String[]{permission}, REQUEST_CODE);
                 return false;
             }
@@ -159,20 +185,17 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case WRITE_EXTERNAL_STORAGE_CODE:
-//                Log.d(TAG, "External storage2");
-                if(grantResults[0]== PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permission: " + permissions[0] + "was "
-                            + grantResults[0], Toast.LENGTH_SHORT).show();
-                    importHandler();
-                    break;
-                }
+        if (requestCode == WRITE_EXTERNAL_STORAGE_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission: " + permissions[0] + "was "
+                        + grantResults[0], Toast.LENGTH_SHORT).show();
+                importHandler();
+            }
         }
     }
 
     private String parseXML(InputStream is) {
-        String instanceID = "";
+        String instanceID = null;
         XmlPullParserFactory parserFactory;
         try {
             parserFactory = XmlPullParserFactory.newInstance();
@@ -190,9 +213,9 @@ public class MainActivity extends AppCompatActivity {
     private String processParsing(XmlPullParser parser) {
         int eventType=-1;
         String nodeName;
-        String data="";
+        String data = null;
 
-        Boolean stop = false;
+        boolean stop = false;
         try {
             while (eventType != XmlPullParser.END_DOCUMENT && !stop) {
                 eventType = parser.next();
@@ -253,7 +276,6 @@ public class MainActivity extends AppCompatActivity {
         return new String(content);
     }
 
-    // Lấy tên file tạo thành adapter
     class LoadTask extends AsyncTask<Void, Void, ArrayList<XmlFile>> {
         @Override
         protected void onPreExecute() {
@@ -301,29 +323,56 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    class ImportTask extends AsyncTask<ArrayList<String>, Void, Void> {
+    class ImportTask extends AsyncTask<ArrayList<String>, Void, Pair<Integer, Integer>> {
 
         @Override
-        protected Void doInBackground(ArrayList<String>... arrayLists) {
+        protected void onPreExecute(){
+            super.onPreExecute();
+            showDialog(progress_bar_type);
+        }
+
+        @SafeVarargs
+        @Override
+        protected final Pair<Integer, Integer> doInBackground(ArrayList<String>... arrayLists) {
+            int count = arrayLists[0].size();
+            int success_count = 0;
+            pDialog.setMax(count);
+
             AssetManager assetManager = getAssets();
             InputStream is = null;
-            InputStream is2 = null;
+            InputStream is2;
             OutputStream os = null;
             File dir = getApplicationContext().getDir("official_data", Context.MODE_PRIVATE);
+            int i = 0;
             for (String file:arrayLists[0]) {
+                pDialog.setProgress(i);
                 try {
                     is = assetManager.open(file);
                     is2 = assetManager.open(file);
                     File outFile = new File(dir, file);
                     os = new FileOutputStream(outFile);
-                    copyFile(is, os);
-                    String instanceID = parseXML(is2);
-                    Log.d("Files", instanceID);
-                    Log.d("Files", "success " + file);
-                    Log.d("Files", outFile.getAbsolutePath());
+
+                    String instanceID = parseXML(is2);  // lấy ra instanceID trong file
+                    if (instanceID != null) {
+                        // nếu tìm được instance ID
+
+
+                        Log.d("Files", file + " " + instanceID);
+                        if (fileDbHelper.getFileNameById(instanceID)!=null) {
+                            // nếu chưa tồn tại trong db thì insert
+                            fileDbHelper.insertFile(file, instanceID);
+                        }
+                        else {
+                            // nếu đã tồn tại trong db thì update
+                            fileDbHelper.updateFileById(instanceID, file);
+                        }
+
+                        copyFile(is, os);
+                        success_count++;
+                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Log.d("Files", "unseccess " + file);
                 } finally {
                     if (is != null) {
                         try {
@@ -340,12 +389,49 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 //                String content = readFile(file);
-//                Log.d("Files", content);
                 }
-
+                sleep(200); // ...
+                i++;
             }
+            pDialog.setProgress(i);
+            sleep(200); // ...
 
-            return null;
+            return new Pair<>(success_count, count - success_count);
+        }
+
+        @Override
+        protected void onPostExecute(Pair<Integer, Integer> pair) {
+            super.onPostExecute(pair);
+            if (pDialog.isShowing())
+                dismissDialog(progress_bar_type);
+
+            String importResult = "";
+            if (pair.first > 0)
+                importResult += pair.first + " file" + ((pair.first > 1) ? "s " : " ")
+                    + "successfully";
+            if (pair.second > 0)
+                importResult += "\n" + pair.second + " file" + ((pair.second > 1) ? "s " : " ")
+                        + "unsuccessfully";
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Importing Result");
+
+            builder.setMessage(importResult);
+            builder.setCancelable(true);
+
+            final AlertDialog dlg = builder.create();
+
+            if (dlg != null)
+                dlg.show();
+
+            final Timer t = new Timer();
+            t.schedule(new TimerTask() {
+                public void run() {
+                    if (dlg != null)
+                        dlg.dismiss();
+                    t.cancel();
+                }
+            }, 2500);
         }
     }
 }

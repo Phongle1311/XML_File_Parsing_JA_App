@@ -56,7 +56,7 @@ public class FileDbHelper extends SQLiteOpenHelper {
         return files;
     }
 
-    public String getFileNameById(int id) {
+    public String getFileNameById(String id) {
         String file = null;
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery("SELECT name from file_location where id = ?",
@@ -76,7 +76,7 @@ public class FileDbHelper extends SQLiteOpenHelper {
                 new String[]{fileName, id});
     }
 
-    void insert(String id, String fileName) {
+    void insertFile(String id, String fileName) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT INTO file_location (id, name ) VALUES (?,?)",
                 new String[]{id, fileName});
