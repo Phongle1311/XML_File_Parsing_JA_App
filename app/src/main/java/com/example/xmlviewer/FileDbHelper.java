@@ -10,9 +10,7 @@ import androidx.annotation.Nullable;
 
 import com.example.xmlviewer.model.XmlFile;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 public class FileDbHelper extends SQLiteOpenHelper {
     private static final String TAG             = "FileDbHelper";
@@ -71,19 +69,19 @@ public class FileDbHelper extends SQLiteOpenHelper {
         return file;
     }
 
-    void updateFileById(String id, String fileName) {
+    public void updateFileById(String id, String fileName) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("UPDATE file_location SET name=? where id = ?",
                 new String[]{fileName, id});
     }
 
-    void insertFile(String id, String fileName) {
+    public void insertFile(String id, String fileName) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("INSERT INTO file_location (id, name ) VALUES (?,?)",
                 new String[]{id, fileName});
     }
 
-    void deleteFileById(String id) {
+    public void deleteFileById(String id) {
         SQLiteDatabase db = getWritableDatabase();
         db.execSQL("DELETE FROM product where id = ?", new String[]{id});
     }

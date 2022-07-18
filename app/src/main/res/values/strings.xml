@@ -5,4 +5,5 @@
     <string name="open">open</string>
     <string name="import_file_icon">import_file_icon</string>
     <string name="choose_one_file">Choose one file ...</string>
+    <string name="reading">Reading ...</string>
 </resources>

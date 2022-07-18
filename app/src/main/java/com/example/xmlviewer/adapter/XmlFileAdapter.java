@@ -3,7 +3,6 @@ package com.example.xmlviewer.adapter;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.xmlviewer.R;
@@ -45,14 +44,14 @@ public class XmlFileAdapter extends BaseAdapter {
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
-        View viewFile;
+        View vFile;
         if (view == null) {
-            viewFile = View.inflate(viewGroup.getContext(), R.layout.item_xml_file, null);
+            vFile = View.inflate(viewGroup.getContext(), R.layout.item_xml_file, null);
         }
-        else viewFile = view;
+        else vFile = view;
 
         XmlFile file = (XmlFile) getItem(i);
-        TextView tvFileName = viewFile.findViewById(R.id.tv_file_name);
+        TextView tvFileName = vFile.findViewById(R.id.tv_file_name);
 
         tvFileName.setText(file.getName());
         if (file.getSelected())
@@ -68,6 +67,6 @@ public class XmlFileAdapter extends BaseAdapter {
                 tvFileName.setBackgroundResource(R.drawable.my_border);
         });
 
-        return viewFile;
+        return vFile;
     }
 }

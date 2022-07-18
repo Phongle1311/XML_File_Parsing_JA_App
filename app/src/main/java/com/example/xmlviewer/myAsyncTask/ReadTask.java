@@ -22,6 +22,18 @@ public class ReadTask extends AsyncTask<String, Void, String> {
     }
 
     @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+
+        Activity activity = activityWeakReference.get();
+        if (activity == null || activity.isFinishing())
+            return;
+
+        TextView tvFileContent = activity.findViewById(R.id.file_content);
+        tvFileContent.setText(R.string.reading);
+    }
+
+    @Override
     protected String doInBackground(String... strings) {
         return readFile(strings[0]);
     }
@@ -37,7 +49,7 @@ public class ReadTask extends AsyncTask<String, Void, String> {
         tvFileContent.setText(s);
     }
 
-    private String readFile(String fileName) {
+    private String readFile(String fileName){
         Activity activity = activityWeakReference.get();
         if (activity == null || activity.isFinishing())
             return "";
@@ -45,13 +57,13 @@ public class ReadTask extends AsyncTask<String, Void, String> {
         File dir = activity.getDir("official_data", Context.MODE_PRIVATE);
         File file = new File(dir, fileName);
         FileInputStream is = null;
-        byte[] content = new byte[(int) file.length()];
+        byte[] buffer = new byte[(int) file.length()];
         String result = "";
         int totalBytes = -1;
 
         try {
             is = new FileInputStream(file);
-            totalBytes = is.read(content);
+            totalBytes = is.read(buffer);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             result = "File not found";
@@ -70,7 +82,7 @@ public class ReadTask extends AsyncTask<String, Void, String> {
         }
 
         if (totalBytes!=-1)
-            result = new String(content);
+            result = new String(buffer);
         return result;
     }
 }

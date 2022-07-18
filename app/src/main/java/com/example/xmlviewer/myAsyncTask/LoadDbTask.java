@@ -42,6 +42,7 @@ public class LoadDbTask extends AsyncTask<Void, Void, ArrayList<XmlFile>> {
     @Override
     protected void onPostExecute(ArrayList<XmlFile> xmlFiles) {
         super.onPostExecute(xmlFiles);
+
         Activity activity = activityWeakReference.get();
         if (activity == null || activity.isFinishing())
             return;
