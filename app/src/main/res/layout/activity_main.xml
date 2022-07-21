@@ -10,8 +10,8 @@
     android:paddingBottom="35dp"
     tools:context=".MainActivity">
 
-    <ListView
-        android:id="@+id/lvXmlFile"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id = "@+id/rcv_xml_file"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"

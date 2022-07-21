@@ -1,4 +1,4 @@
-package com.example.xmlviewer.my_interface;
+package com.example.xmlviewer.interfaces;
 
 import com.example.xmlviewer.model.XmlFile;
 
