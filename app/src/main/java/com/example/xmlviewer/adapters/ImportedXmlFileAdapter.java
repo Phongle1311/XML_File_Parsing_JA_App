@@ -50,7 +50,7 @@ public class ImportedXmlFileAdapter extends
         XmlFile file = listFiles.get(position);
         if (file == null) return;
 
-        holder.tvInstanceID.setText(file.getId());
+        holder.tvInstanceID.setText(file.getInstanceId());
 
         holder.vFile.setOnClickListener(view1 -> {
             iClick.onClickItemImportedFile(file);

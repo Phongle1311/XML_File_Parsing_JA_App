@@ -32,7 +32,7 @@ public class LoadThread extends Thread{
 
             for (String file : files) {
                 if (file.endsWith(".xml"))
-                    listFiles.add(new XmlFile(file));
+                    listFiles.add(new XmlFile(file, ""));
             }
         } catch (IOException e1) {
             e1.printStackTrace();

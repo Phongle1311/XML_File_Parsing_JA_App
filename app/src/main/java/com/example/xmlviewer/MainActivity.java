@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -86,11 +85,11 @@ public class MainActivity extends AppCompatActivity {
 
                     String importResult = "";
                     if (successful_count > 0)
-                        importResult += successful_count + " file" + ((successful_count > 1) ? "s " : " ")
-                                + "successfully";
+                        importResult += successful_count + " file" +
+                                ((successful_count > 1) ? "s " : " ") + "successfully";
                     if (unsuccessful_count > 0)
-                        importResult += "\n" + unsuccessful_count + " file" + ((unsuccessful_count > 1) ? "s " : " ")
-                                + "unsuccessfully";
+                        importResult += "\n" + unsuccessful_count + " file" +
+                                ((unsuccessful_count > 1) ? "s " : " ") + "unsuccessfully";
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                     builder.setTitle("Importing Result");
@@ -124,7 +123,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        new LoadTask(this, this::updateAdapter).execute();
         LoadThread t = new LoadThread(this, handler);
         t.start();
 
@@ -142,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateAdapter(XmlFileAdapter adapter) {
         mAdapter = adapter;
-//        mAdapter.notifyDataSetChanged();
     }
 
     private void importHandler() {

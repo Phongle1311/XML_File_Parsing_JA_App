@@ -10,7 +10,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.method.ScrollingMovementMethod;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -32,7 +31,7 @@ public class ImportedListActivity extends AppCompatActivity {
                 if (xmlFiles.isEmpty()) {
                     findViewById(R.id.rcv_xml_file).setVisibility(View.GONE);
                     findViewById(R.id.file_content).setVisibility(View.VISIBLE);
-                    findViewById(R.id.empty_view).setVisibility(View.GONE);
+                    findViewById(R.id.empty_view).setVisibility(View.VISIBLE);
                 }
                 else {
                     RecyclerView rcvXmlFile = findViewById(R.id.rcv_xml_file);

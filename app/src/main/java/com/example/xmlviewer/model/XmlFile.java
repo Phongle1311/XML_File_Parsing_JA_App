@@ -1,20 +1,28 @@
 package com.example.xmlviewer.model;
 
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+@Entity(tableName = "xmlFile")
 public class XmlFile {
+    @PrimaryKey(autoGenerate = true)
+    private int id;
     private String name;
-    private String id;
+    private String instanceId;
     private Boolean isSelected;
 
-    public XmlFile(String name) {
+    public XmlFile(String name, String instanceId) {
         this.name = name;
-        this.id = "";
-        this.isSelected = false;
+        this.instanceId = instanceId;
+        isSelected = false;
     }
 
-    public XmlFile(String name, String id) {
-        this.name = name;
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
         this.id = id;
-        isSelected = false;
     }
 
     public String getName() {
@@ -33,11 +41,11 @@ public class XmlFile {
         isSelected = selected;
     }
 
-    public String getId() {
-        return id;
+    public String getInstanceId() {
+        return instanceId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
     }
 }

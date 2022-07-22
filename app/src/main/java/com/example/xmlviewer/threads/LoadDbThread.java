@@ -4,17 +4,15 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
 
-import com.example.xmlviewer.FileDbHelper;
+import com.example.xmlviewer.database.XmlFileDatabase;
 
 public class LoadDbThread extends Thread{
     Handler handler;
-    FileDbHelper fileDbHelper;
     Context mContext;
 
     public LoadDbThread(Context context, Handler handler) {
         mContext = context;
         this.handler = handler;
-        fileDbHelper = new FileDbHelper(mContext);
     }
 
     @Override
@@ -23,7 +21,7 @@ public class LoadDbThread extends Thread{
 
         Message msg = handler.obtainMessage();
         msg.what = 0;
-        msg.obj = fileDbHelper.getAllFiles();
+        msg.obj =  XmlFileDatabase.getInstance(mContext).xmlFileDAO().getAllFiles();
         handler.sendMessage(msg);
     }
 }

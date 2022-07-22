@@ -4,9 +4,9 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 
-import com.example.xmlviewer.FileDbHelper;
+import com.example.xmlviewer.database.XmlFileDatabase;
+import com.example.xmlviewer.model.XmlFile;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -18,13 +18,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ImportThread extends Thread {
     Context mContext;
     ArrayList<String> fileNames;
     int count;
     int success_count;
-    FileDbHelper fileDbHelper;
     Handler handler;
 
 
@@ -33,7 +33,6 @@ public class ImportThread extends Thread {
         this.fileNames = fileNames;
         count = fileNames.size();
         success_count = 0;
-        fileDbHelper = new FileDbHelper(mContext);
         this.handler = handler;
     }
 
@@ -64,13 +63,20 @@ public class ImportThread extends Thread {
 
                 String instanceID = parseXML(is2);  // take instanceID
                 if (instanceID != null) {
-                    // if not exists ID
-                    if (fileDbHelper.getFileNameById(instanceID)==null) {
-                        fileDbHelper.insertFile(instanceID, fileName);
+                    List<XmlFile> list =  XmlFileDatabase.getInstance(mContext).xmlFileDAO()
+                            .getByInstanceId(instanceID);
+                    if (list != null) {
+                        if (!list.isEmpty())
+                            // if not exists ID
+                            XmlFileDatabase.getInstance(mContext).xmlFileDAO()
+                                    .updateByInstanceId(instanceID, fileName);
+                        else
+                            XmlFileDatabase.getInstance(mContext).xmlFileDAO()
+                                    .insertFile(new XmlFile(fileName, instanceID));
                     }
-                    else {
-                        fileDbHelper.updateFileById(instanceID, fileName);
-                    }
+                    else
+                        XmlFileDatabase.getInstance(mContext).xmlFileDAO()
+                                .insertFile(new XmlFile(fileName, instanceID));
 
                     copyFile(is, os);
                     success_count++;
@@ -101,7 +107,6 @@ public class ImportThread extends Thread {
             }
             i++;
         }
-//        pDialog.setProgress(i);
         msg = handler.obtainMessage();
         msg.what = 2;
         msg.arg1 = i;
